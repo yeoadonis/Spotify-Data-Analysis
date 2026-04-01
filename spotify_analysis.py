@@ -13,4 +13,98 @@ def simplifier_list(orig_list)
      simp_list.append(new_dict) 
 
      return simp_list
+
+#Range les titres par nombre d'écoutes
+def rank_songs(data):
+    counts = {}
+
+    for ligne in data:
+        key = (ligne["track"], ligne["artist"])
+        counts[key] = counts.get(key, 0) + 1
+
+    sorted_counts = sorted(
+        counts.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+    return sorted_counts
+
+
+#Range les titres par durée d'écoute.
+def rank_songsbis(data):
+    counts = {}
+
+    for ligne in data:
+        key = (ligne["track"], ligne["artist"])
+        counts[key] = counts.get(key, 0) +  ligne["timestamp"]
+
+    sorted_counts = sorted(
+        counts.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+    return sorted_counts
+
+#Range les albums par nombre d'écoutes 
+def rank_albums(data):
+    counts = {}
+
+    for ligne in data:
+        key = (ligne["album"], ligne["artist"])
+        counts[key] = counts.get(key, 0) + 1
+
+    sorted_counts = sorted(
+        counts.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+    
+    return sorted_counts
+
+#Range les albums par temps d'écoutes
+def rank_albumsbis(data):
+    counts = {}
+
+    for ligne in data:
+        key = (ligne["album"], ligne["artist"])
+        counts[key] = counts.get(key, 0) + ligne["timestamp"]
+
+    sorted_counts = sorted(
+        counts.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+    return sorted_counts
+ #Range les artistes par nombre d'écoutes
+ def rank_artist(data):
+    counts = {}
+
+    for ligne in data:
+        key =  (ligne["artist"] )
+        counts[key] = counts.get(key, 0) + 1
+   
+
+    sorted_counts = sorted(
+        counts.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+    return sorted_counts
+
+  #Range les artistes par temps écoutés
+  def rank_artistbis(data):
+    counts = {}
+
+    for ligne in data:
+        key =  (ligne["artist"] )
+        counts[key] = counts.get(key, 0) + ligne["timestamp"]
+   
+
+    sorted_counts = sorted(
+        counts.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+    return sorted_counts
+  
   
