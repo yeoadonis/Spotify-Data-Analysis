@@ -52,6 +52,19 @@ def rank(data, key_type="song", mode="count"):
 
     return sorted_counts
 
+from fastapi import FastAPI, UploadFile, File
+import json
+
+app = FastAPI()
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    
+    content = await file.read()
+    
+    orig_list = json.loads(content)
+
+    return {"message": "File received", "entries": len(orig_list)}
 
   
   
