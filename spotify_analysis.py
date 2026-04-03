@@ -55,16 +55,23 @@ def rank(data, key_type="song", mode="count"):
 from fastapi import FastAPI, UploadFile, File
 import json
 
-app = FastAPI()
 
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    
+async def upload(file: UploadFile = File(engine.py)):
     content = await file.read()
-    
     orig_list = json.loads(content)
 
-    return {"message": "File received", "entries": len(orig_list)}
+    global DATA
+    DATA = simplifier_list(orig_list)
 
+    return {"message": "data loaded"}
+
+@app.get("/top-songs")
+def top_songs():
+    return rank(DATA, key_type="song", mode="count")[:100]
+
+@app.get("/top-artists")
+def top_artists():
+    return rank(DATA, key_type="artist", mode="count")[:100]
   
   
