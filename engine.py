@@ -14,7 +14,7 @@ def simplifier_list(orig_list):
             "track": ligne["master_metadata_track_name"],
             "artist": ligne["master_metadata_album_artist_name"],
             "album": ligne["master_metadata_album_album_name"],
-            "ms_played": ligne["ms_played"],
+            "min_played": ligne["ms_played"]/60000,
             "timestamp": ligne["ts"]
         }
 
@@ -39,7 +39,7 @@ def rank(data, key_type="song", mode="count"):
         if mode == "count":
             value = 1
         elif mode == "time":
-            value = ligne["ms_played"]
+            value = ligne["min_played"]
 
         counts[key] = counts.get(key, 0) + value
 
