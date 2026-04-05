@@ -45,6 +45,7 @@
     <div id="results"></div>
 </div>
 
+
 <script>
 
 //  Upload file
@@ -86,19 +87,28 @@ async function getRanking() {
 
     const data = await response.json();
 
-    displayResults(data);
+    displayResults(data, mode);
 
     document.getElementById("resultSection").style.display = "block";
 }
 
 // Display results
-function displayResults(data) {
+function displayResults(data, mode) {
     const container = document.getElementById("results");
-    container.innerHTML = "";
-
+    container.innerHTML = ""
     data.slice(0, 100).forEach((item, index) => {
         let name = "";
-        let value = item[1];
+        let value =item[1];
+        let label = "";
+        
+
+        if (mode === "count"){
+            label = "streams"
+        }
+
+        if (mode === "time"){
+            label ="minutes"
+        }
 
         if (Array.isArray(item[0])) {
             name = item[0].join(" - ");
@@ -107,7 +117,7 @@ function displayResults(data) {
         }
 
         const div = document.createElement("div");
-        div.textContent = `${index + 1}. ${name} : ${value}`;
+        div.textContent = `${index + 1}. ${name} : ${value} ${label}`;
         container.appendChild(div);
     });
 }
