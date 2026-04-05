@@ -1,4 +1,4 @@
-#turn the list in the file into a simplier one
+#simplifie la liste
 def simplifier_list(orig_list):
     simp_list = []
 
@@ -14,7 +14,7 @@ def simplifier_list(orig_list):
             "track": ligne["master_metadata_track_name"],
             "artist": ligne["master_metadata_album_artist_name"],
             "album": ligne["master_metadata_album_album_name"],
-            "min_played": ligne["ms_played"]/60000,
+            "min_played": round(ligne["ms_played"]/60000),
             "timestamp": ligne["ts"]
         }
 
