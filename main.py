@@ -35,7 +35,7 @@ def top_songs(mode : str = "count"):
 
 @app.get("/top-artists")
 def top_artists(mode : str = "count"):
-    return rank(DATA, key_type="artist", mode=mode)[:100]@app.get("/top-artists")
+    return rank(DATA, key_type="artist", mode=mode)[:100]
 
 def top_albums(mode : str = "count"):
     return rank(DATA, key_type="album", mode=mode)[:100]
