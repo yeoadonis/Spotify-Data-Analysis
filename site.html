@@ -9,14 +9,14 @@
 
 <h1>tracklytics</h1>
 
-<!-- Upload the file -->
+
 <div id="uploadSection">
     <h2>Upload Spotify JSON</h2>
     <input type="file" id="fileInput">
     <button onclick="uploadFile()">Upload</button>
 </div>
 
-<!--Choose the ranking-->
+
 <div id="optionsSection" style="display:none;">
     <h2>Choose Ranking</h2>
 
@@ -37,12 +37,19 @@
 
     <br><br>
 
+    <label>Period:</label>
+    <select id="period">
+      <option value="all">All Time</option>
+      <option value="4weeks">Last 4 Weeks</option>
+      <option value="6months">Last 6 Months</option>
+      <option value="1year">Last 1 Year</option>
+</select>
+
     <button onclick="getRanking()">Show Ranking</button>
 </div>
 
-<!-- Results -->
 <div id="resultSection" style="display:none;">
-    <h2>Top 100</h2>
+    <h2>Top 250</h2>
     <div id="results"></div>
 </div>
 
@@ -75,6 +82,7 @@ async function uploadFile() {
 async function getRanking() {
     const type = document.getElementById("type").value;
     const mode = document.getElementById("mode").value;
+    const period = document.getElementById("period").value;
 
     let endpoint = "";
 
@@ -83,7 +91,7 @@ async function getRanking() {
     if (type === "album") endpoint = "top-albums";
 
     const response = await fetch(
-        `http://127.0.0.1:8000/${endpoint}?mode=${mode}`
+        `http://127.0.0.1:8000/${endpoint}?mode=${mode}&period=${period}`
     );
 
     const data = await response.json();
