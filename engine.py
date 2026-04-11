@@ -1,4 +1,4 @@
-#simplifie la liste
+from datetime import datetime, time 
 def simplifier_list(orig_list):
     simp_list = []
 
@@ -22,10 +22,40 @@ def simplifier_list(orig_list):
 
     return simp_list
 
-def rank(data, key_type="song", mode="count"):
-    counts = {}
+
+def filter_by_period(data, period):
 
     for ligne in data:
+        ligne["ts"] = datetime.fromisoformat(ligne["timestamp"].replace("Z", ""))
+        
+    last_date = max(ligne["ts"] for ligne in data)
+    
+    if period == "all":
+        return data
+
+    # 4. Compute limit (only your choices)
+    if period == "4weeks":
+        limit = last_date - timedelta(days=28)
+
+    elif period == "6months":
+        limit = last_date - timedelta(days=182)
+
+    elif period == "1year":
+        limit = last_date - timedelta(days=365)
+
+    # 5. Filter
+    filtered = []
+    for ligne in data:
+        if ligne["ts"] >= limit:
+            filtered.append(ligne)
+
+    return filtered
+
+def rank(data, key_type="song", mode="count", period="4weeks"):
+    counts = {}
+
+    for ligne in data  :
+        if 
 
         # définir la clé selon le type
         if key_type == "song":
