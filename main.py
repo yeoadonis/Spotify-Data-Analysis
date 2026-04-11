@@ -30,16 +30,19 @@ async def upload(file: UploadFile (...)):
     return {"message": "data loaded"}
 
 @app.get("/top-songs")
-def top_songs(mode : str = "count"):
-    return rank(DATA, key_type="song", mode=mode)[:100]
+def top_songs(mode: str = "count", period: str = "all"):
+    filtered = filter_by_period(DATA, period)
+    return rank(filtered, key_type="song", mode=mode)[:250]
+
 
 @app.get("/top-artists")
-def top_artists(mode : str = "count"):
-    return rank(DATA, key_type="artist", mode=mode)[:100]
-
-def top_albums(mode : str = "count"):
-    return rank(DATA, key_type="album", mode=mode)[:100]
+def top_artists(mode: str = "count", period: str = "all"):
+    filtered = filter_by_period(DATA, period)
+    return rank(filtered, key_type="artist", mode=mode)[:250]
 
 
-
+@app.get("/top-albums")
+def top_albums(mode: str = "count", period: str = "all"):
+    filtered = filter_by_period(DATA, period)
+    return rank(filtered, key_type="album", mode=mode)[:250]
   
