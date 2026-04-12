@@ -4,7 +4,7 @@ An android app and website destinated to have 2 functions :
 Give the top songs, artists and albums of a spotify account based of the spotify API and/or the extented streaming history.
 Being a music player and spotify client
 
-##features
+## Features
 
 - Upload Spotify Extended Streaming History (JSON)
 - Ranking by:
@@ -37,7 +37,7 @@ py -m uvicorn main:app --reload
 
 ## Languages used
 
-- Python (FastAPI
+- Python (FastAPI)
 - JavaScript 
 - HTML/CSS
 
