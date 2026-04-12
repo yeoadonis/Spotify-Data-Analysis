@@ -26,11 +26,11 @@ async def upload(file: UploadFile = File(...)):
 
     global DATA
 
-    # CAS 1 → JSON direct
+    
     if file.filename.endswith(".json"):
         orig_list = json.loads(content)
 
-    # CAS 2 → ZIP
+    
     elif file.filename.endswith(".zip"):
         orig_list = []
 
