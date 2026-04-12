@@ -20,11 +20,30 @@ app.add_middleware(
 
 
 @app.post("/upload")
-async def upload(file: UploadFile (...)):
+@app.post("/upload")
+async def upload(file: UploadFile = File(...)):
     content = await file.read()
-    orig_list = json.loads(content)
 
     global DATA
+
+    # CAS 1 → JSON direct
+    if file.filename.endswith(".json"):
+        orig_list = json.loads(content)
+
+    # CAS 2 → ZIP
+    elif file.filename.endswith(".zip"):
+        orig_list = []
+
+        zip_file = zipfile.ZipFile(io.BytesIO(content))
+
+        for name in zip_file.namelist():
+            if name.endswith(".json"):
+                with zip_file.open(name) as f:
+                    file_content = f.read().decode("utf-8")
+                    data = json.loads(file_content)
+                    orig_list.extend(data)
+
+    # pipeline normal
     DATA = simplifier_list(orig_list)
 
     return {"message": "data loaded"}
