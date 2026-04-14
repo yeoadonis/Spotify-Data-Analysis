@@ -1,4 +1,6 @@
-from datetime import datetime, time 
+from datetime import datetime, timedelta
+
+# Fonction pour transformer les données brutes en données exploitables
 def simplifier_list(orig_list):
     simp_list = []
 
@@ -22,7 +24,7 @@ def simplifier_list(orig_list):
 
     return simp_list
 
-
+# Fonction pour filtrer les données selon la période choisie
 def filter_by_period(data, period):
 
     for ligne in data:
@@ -37,11 +39,11 @@ def filter_by_period(data, period):
     if period == "4weeks":
         limit = last_date - timedelta(days=28)
 
+    elif period == "3months":
+        limit = last_date - timedelta(days=90)
+
     elif period == "6months":
         limit = last_date - timedelta(days=182)
-
-     elif period == "3months":
-        limit = last_date - timedelta(days=90)
 
     elif period == "1year":
         limit = last_date - timedelta(days=365)
@@ -54,11 +56,12 @@ def filter_by_period(data, period):
 
     return filtered
 
+# Fonction pour classer les données selon le mode choisi
 def rank(data, key_type="song", mode="count", period="4weeks"):
     counts = {}
 
     for ligne in data  :
-        if 
+        
 
         # définir la clé selon le type
         if key_type == "song":
@@ -83,3 +86,5 @@ def rank(data, key_type="song", mode="count", period="4weeks"):
     )
 
     return sorted_counts
+
+ 
