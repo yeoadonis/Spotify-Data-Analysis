@@ -33,17 +33,20 @@ def filter_by_period(data, period):
     if period == "all":
         return data
 
-    # 4. Compute limit (only your choices)
+    
     if period == "4weeks":
         limit = last_date - timedelta(days=28)
 
     elif period == "6months":
         limit = last_date - timedelta(days=182)
 
+     elif period == "3months":
+        limit = last_date - timedelta(days=90)
+
     elif period == "1year":
         limit = last_date - timedelta(days=365)
 
-    # 5. Filter
+    
     filtered = []
     for ligne in data:
         if ligne["ts"] >= limit:
