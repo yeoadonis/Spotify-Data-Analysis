@@ -1,15 +1,17 @@
-
 from fastapi import FastAPI, UploadFile, File
 import json
-from engine import simplifier_list() rank()
+import zipfile
+import io
+from engine import simplifier_list, rank, filter_by_period
 
 
-app = FastApi()
+
+app = FastAPI()
 
 DATA = []
 
 from fastapi.middleware.cors import CORSMiddleware
-
+# Autoriser les requêtes de n'importe quelle origine 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,8 +20,7 @@ app.add_middleware(
 )
   
 
-
-@app.post("/upload")
+# Endpoint pour l'upload du fichier
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
     content = await file.read()
@@ -30,7 +31,7 @@ async def upload(file: UploadFile = File(...)):
     if file.filename.endswith(".json"):
         orig_list = json.loads(content)
 
-    
+
     elif file.filename.endswith(".zip"):
         orig_list = []
 
@@ -43,25 +44,25 @@ async def upload(file: UploadFile = File(...)):
                     data = json.loads(file_content)
                     orig_list.extend(data)
 
-    # pipeline normal
     DATA = simplifier_list(orig_list)
 
     return {"message": "data loaded"}
 
+# Endpoint pour les chansons
 @app.get("/top-songs")
 def top_songs(mode: str = "count", period: str = "all"):
     filtered = filter_by_period(DATA, period)
-    return rank(filtered, key_type="song", mode=mode)[:250]
+    return rank(filtered, key_type="song", mode=mode)[:100]
 
-
+# Endpoint pour les artistes
 @app.get("/top-artists")
 def top_artists(mode: str = "count", period: str = "all"):
     filtered = filter_by_period(DATA, period)
-    return rank(filtered, key_type="artist", mode=mode)[:250]
+    return rank(filtered, key_type="artist", mode=mode)[:100]
 
-
+# Endpoint pour les albums
 @app.get("/top-albums")
 def top_albums(mode: str = "count", period: str = "all"):
     filtered = filter_by_period(DATA, period)
-    return rank(filtered, key_type="album", mode=mode)[:250]
+    return rank(filtered, key_type="album", mode=mode)[:100]
   
