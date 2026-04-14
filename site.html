@@ -1,4 +1,5 @@
 
+<!--This is the HTML file for the Music Analysis site-->
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,16 +8,17 @@
 </head>
 <body>
 
-<h1>tracklytics</h1>
+<!-- Main content -->
+<h1>Your Spotify Data</h1>
 
-
+<!-- Section for uploading the Spotify JSON file -->
 <div id="uploadSection">
     <h2>Upload Spotify JSON</h2>
     <input type="file" id="fileInput">
     <button onclick="uploadFile()">Upload</button>
 </div>
 
-
+<!-- Section for choosing ranking options -->
 <div id="optionsSection" style="display:none;">
     <h2>Choose Ranking</h2>
 
@@ -28,7 +30,8 @@
     </select>
 
     <br><br>
-
+    
+    <!-- Mode selection -->
     <label>Mode:</label>
     <select id="mode">
         <option value="count">Count</option>
@@ -37,10 +40,12 @@
 
     <br><br>
 
+    <!---->
     <label>Period:</label>
     <select id="period">
       <option value="all">All Time</option>
       <option value="4weeks">Last 4 Weeks</option>
+      <option value="3months">Last 3 Months</option>
       <option value="6months">Last 6 Months</option>
       <option value="1year">Last 1 Year</option>
 </select>
@@ -48,8 +53,9 @@
     <button onclick="getRanking()">Show Ranking</button>
 </div>
 
+<!-- Section for displaying results -->
 <div id="resultSection" style="display:none;">
-    <h2>Top 250</h2>
+    <h2>Top 100</h2>
     <div id="results"></div>
 </div>
 
