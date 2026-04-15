@@ -1,68 +1,77 @@
-
-<!--This is the HTML file for the Music Analysis site-->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Music Analysis</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Spotify Analytics</title>
     <link rel="stylesheet" href="tracklytics.css">
 </head>
 <body>
 
-<!-- Main content -->
-<h1>Your Spotify Data</h1>
+    <h1>Your Spotify Analytics</h1>
 
-<!-- Section for uploading the Spotify JSON file -->
-<div id="uploadSection">
-    <h2>Upload Spotify JSON</h2>
-    <input type="file" id="fileInput">
-    <button onclick="uploadFile()">Upload</button>
-</div>
+    <div id="uploadSection">
+        <h2>Upload Spotify file</h2>
+        <input type="file" id="fileInput" accept=".json,.zip">
+        <button onclick="uploadFile()">Upload</button>
+    </div>
 
-<!-- Section for choosing ranking options -->
-<div id="optionsSection" style="display:none;">
-    <h2>Choose Ranking</h2>
+    <div id="optionsSection" style="display:none;">
+        <h2>Choose options</h2>
 
-    <label>Type:</label>
-    <select id="type">
-        <option value="song">Songs</option>
-        <option value="artist">Artists</option>
-        <option value="album">Albums</option>
-    </select>
+        <label for="mode">Mode:</label>
+        <select id="mode">
+            <option value="count">Count</option>
+            <option value="time">Time</option>
+        </select>
 
-    <br><br>
+        <br><br>
+
+        <label for="period">Period:</label>
+        <select id="period">
+            <option value="all">All time</option>
+            <option value="4weeks">Last 4 weeks</option>
+            <option value="3months">Last 3 months</option>
+            <option value="6months">Last 6 months</option>
+            <option value="1year">Last 1 year</option>
+            <option value="This year">This year</option>
+            <option value="last year">Last year</option>
+        </select>
+
+        <br><br>
+
+        <button onclick="loadDashboard()">Show rankings</button>
+    </div>
+
+    <div id="dashboardSection" style="display:none;">
+        <h2>Top Rankings</h2>
+
+        <div class="rankingBlock">
+            <h3>Top Songs</h3>
+            <div id="songsPreview"></div>
+            <button onclick="goToRanking('song')">See full ranking</button>
+
+        </div>
+
+        <div class="rankingBlock">
+            <h3>Top Artists</h3>
+            <div id="artistsPreview"></div>
+            <button onclick="goToRanking('artist')">See full ranking</button>
+        </div>
+
+        <div class="rankingBlock">
+            <h3>Top Albums</h3>
+            <div id="albumsPreview"></div>
+            <button onclick="goToRanking('album')">See full ranking</button>
+        </div>
+    </div>
     
-    <!-- Mode selection -->
-    <label>Mode:</label>
-    <select id="mode">
-        <option value="count">Count</option>
-        <option value="time">Time</option>
-    </select>
-
-    <br><br>
-
-    <!---->
-    <label>Period:</label>
-    <select id="period">
-      <option value="all">All Time</option>
-      <option value="4weeks">Last 4 Weeks</option>
-      <option value="3months">Last 3 Months</option>
-      <option value="6months">Last 6 Months</option>
-      <option value="1year">Last 1 Year</option>
-</select>
-
-    <button onclick="getRanking()">Show Ranking</button>
-</div>
-
-<!-- Section for displaying results -->
-<div id="resultSection" style="display:none;">
-    <h2>Top 100</h2>
-    <div id="results"></div>
-</div>
-
 
 <script>
+let songsData = [];
+let artistsData = [];
+let albumsData = [];
 
-//  Upload file
 async function uploadFile() {
     const file = document.getElementById("fileInput").files[0];
 
@@ -71,59 +80,56 @@ async function uploadFile() {
         return;
     }
 
-    let formData = new FormData();
+    const formData = new FormData();
     formData.append("file", file);
 
-    await fetch("http://127.0.0.1:8000/upload", {
+    const response = await fetch("http://127.0.0.1:8000/upload", {
         method: "POST",
         body: formData
     });
 
-    // Move to next step
+    if (!response.ok) {
+        alert("Upload failed");
+        return;
+    }
+
     document.getElementById("uploadSection").style.display = "none";
     document.getElementById("optionsSection").style.display = "block";
 }
 
-// Get ranking
-async function getRanking() {
-    const type = document.getElementById("type").value;
+async function loadDashboard() {
     const mode = document.getElementById("mode").value;
     const period = document.getElementById("period").value;
 
-    let endpoint = "";
+    const songsResponse = await fetch(`http://127.0.0.1:8000/top-songs?mode=${mode}&period=${encodeURIComponent(period)}`);
+    const artistsResponse = await fetch(`http://127.0.0.1:8000/top-artists?mode=${mode}&period=${encodeURIComponent(period)}`);
+    const albumsResponse = await fetch(`http://127.0.0.1:8000/top-albums?mode=${mode}&period=${encodeURIComponent(period)}`);
 
-    if (type === "song") endpoint = "top-songs";
-    if (type === "artist") endpoint = "top-artists";
-    if (type === "album") endpoint = "top-albums";
+    songsData = await songsResponse.json();
+    artistsData = await artistsResponse.json();
+    albumsData = await albumsResponse.json();
 
-    const response = await fetch(
-        `http://127.0.0.1:8000/${endpoint}?mode=${mode}&period=${period}`
-    );
+    displayRanking("songsPreview", songsData, mode, 10);
+    displayRanking("artistsPreview", artistsData, mode, 10);
+    displayRanking("albumsPreview", albumsData, mode, 10);
 
-    const data = await response.json();
-
-    displayResults(data, mode);
-
-    document.getElementById("resultSection").style.display = "block";
+    document.getElementById("dashboardSection").style.display = "block";
 }
 
-// Display results
-function displayResults(data, mode) {
-    const container = document.getElementById("results");
-    container.innerHTML = ""
-    data.slice(0, 100).forEach((item, index) => {
+function displayRanking(containerId, data, mode, limit) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+
+    let label = "";
+    if (mode === "count") {
+        label = "streams";
+    } else if (mode === "time") {
+        label = "minutes";
+    }
+
+    data.slice(0, limit).forEach((item, index) => {
         let name = "";
-        let value =item[1];
-        let label = "";
-        
-
-        if (mode === "count"){
-            label = "streams"
-        }
-
-        if (mode === "time"){
-            label ="minutes"
-        }
+        const value = item[1];
 
         if (Array.isArray(item[0])) {
             name = item[0].join(" - ");
@@ -132,13 +138,55 @@ function displayResults(data, mode) {
         }
 
         const div = document.createElement("div");
+        div.className = "rankingRow";
         div.textContent = `${index + 1}. ${name} : ${value} ${label}`;
         container.appendChild(div);
     });
 }
 
+function openRankingModal(type) {
+    const mode = document.getElementById("mode").value;
+
+    let title = "";
+    let data = [];
+
+    if (type === "songs") {
+        title = "Full Songs Ranking";
+        data = songsData;
+    } else if (type === "artists") {
+        title = "Full Artists Ranking";
+        data = artistsData;
+    } else if (type === "albums") {
+        title = "Full Albums Ranking";
+        data = albumsData;
+    }
+
+    document.getElementById("modalTitle").textContent = title;
+    displayModalRanking(data, mode);
+
+    document.getElementById("rankingModal").style.display = "flex";
+}
+
+function displayModalRanking(data, mode) {
+    const container = document.getElementById("modalResults");
+    container.innerHTML = "";
+
+    let label = "";
+    if (mode === "count") {
+        label = "streams";
+    } else if (mode === "time") {
+        label = "minutes";
+    }
+
+}
+
+function goToRanking(type) {
+    const mode = document.getElementById("mode").value;
+    const period = document.getElementById("period").value;
+
+    window.location.href = `ranking.html?type=${type}&mode=${mode}&period=${encodeURIComponent(period)}`;
+}
 </script>
 
 </body>
 </html>
-
