@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spotify {type} Ranking</title>
+    <link rel="stylesheet" href="tracklytics.css">
+</head>
+<body>
+
+<h1 id="title"></h1>
+
+<div id="rankingSection"></div>
+
+
+
+<script>
+function getParams() {
+    const params = new URLSearchParams(window.location.search);
+    return {
+        type: params.get("type"),
+        mode: params.get("mode"),
+        period: params.get("period")
+    };
+}
+
+async function loadRanking() {
+    setTitle();
+    const { type, mode, period } = getParams();
+
+    let endpoint = "";
+    if (type === "song") endpoint = "top-songs";
+    if (type === "artist") endpoint = "top-artists";
+    if (type === "album") endpoint = "top-albums";
+
+    const response = await fetch(
+        `http://127.0.0.1:8000/${endpoint}?mode=${mode}&period=${period}`
+    );
+
+    const data = await response.json();
+
+    displayRanking(data, mode);
+    
+}
+
+function displayRanking(data, mode) {
+    const container = document.getElementById("rankingSection");
+    container.innerHTML = "";
+
+    let label = mode === "count" ? "streams" : "minutes";
+
+    data.forEach((item, index) => {
+        let name = Array.isArray(item[0]) ? item[0].join(" - ") : item[0];
+
+        const div = document.createElement("div");
+        div.className = "rankingRow";
+        div.textContent = `${index + 1}. ${name} : ${item[1]} ${label}`;
+        container.appendChild(div);
+    });
+}
+
+function setTitle() {
+    const { type } = getParams();
+
+    let displayType = "";
+
+    if (type === "song") displayType = "Songs";
+    if (type === "artist") displayType = "Artists";
+    if (type === "album") displayType = "Albums";
+
+    document.getElementById("title").textContent =
+        `Your Spotify ${displayType} Top 100`;
+}
+    
+
+loadRanking();
+</script>
+
+</body>
+</html>
