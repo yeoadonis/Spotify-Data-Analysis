@@ -1,4 +1,3 @@
-
 * {
     margin: 0;
     padding: 0;
@@ -147,4 +146,88 @@ button:active {
     button {
         width: 100%;
     }
+}
+
+/* Dashboard */
+#dashboardSection {
+    max-width: 800px;
+    margin: 0 auto 30px auto;
+}
+
+/* Ranking */
+.rankingBlock {
+    background: #181818;
+    max-width: 800px;
+    margin: 0 auto 30px auto;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+
+.rankingBlock h3 {
+    margin-bottom: 15px;
+    color: #ffffff;
+}
+
+.rankingRow {
+    background: #282828;
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    transition: 0.2s;
+}
+
+.rankingRow:hover {
+    background: #333333;
+}
+
+.fullRankingButton {
+    margin-top: 15px;
+}
+
+/* MODAL */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    z-index: 999;
+}
+
+.modalContent {
+    background: #181818;
+    width: min(900px, 100%);
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.closeButton {
+    background: #1DB954;
+    color: #121212;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.closeButton:hover {
+    background: #1ed760;
 }
