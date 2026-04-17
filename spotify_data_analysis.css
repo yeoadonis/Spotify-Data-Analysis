@@ -30,7 +30,8 @@ h2 {
 
 #uploadSection,
 #optionsSection,
-#resultSection {
+#resultSection,
+#rankingSection{
     background: #181818;
     max-width: 800px;
     margin: 0 auto 30px auto;
