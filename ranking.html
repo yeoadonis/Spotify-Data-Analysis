@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Spotify {type} Ranking</title>
-    <link rel="stylesheet" href="spotify_data_analysis.css">
+    <link rel="stylesheet" href="tracklytics.css">
 </head>
 <body>
 
@@ -38,11 +38,11 @@ async function loadRanking() {
 
     const data = await response.json();
 
-    displayRanking(data, mode);
+    displayRanking(data, mode, type);
     
 }
 
-function displayRanking(data, mode) {
+function displayRanking(data, mode, type) {
     const container = document.getElementById("rankingSection");
     container.innerHTML = "";
 
@@ -51,17 +51,16 @@ function displayRanking(data, mode) {
     data.forEach((item, index) => {
         let name = Array.isArray(item[0]) ? item[0].join(" - ") : item[0];
 
-       const div = document.createElement("div");
-       div.className = "rankingRow";
-       div.textContent = `${index + 1}. ${name} : ${value} ${label}`;
+        const div = document.createElement("div");
+        div.className = "rankingRow";
+        div.textContent = `${index + 1}. ${name} : ${item[1]} ${label}`;
+        
+        div.style.cursor = "pointer";
 
- 
-       div.style.cursor = "pointer";
+        div.onclick = () => {
+        goToItem(item[0], type);};
 
-       div.onclick = () => {
-       goToItem(item[0], type);};
-
-       container.appendChild(div);
+        container.appendChild(div);
     });
 }
 
@@ -78,7 +77,6 @@ function setTitle() {
         `Your Spotify ${displayType} Top 100`;
 }
 
-
 function goToItem(identifier, type) {
     let url = "";
 
@@ -90,7 +88,6 @@ function goToItem(identifier, type) {
         url = `item.html?type=song&name=${encodeURIComponent(track)}&artist=${encodeURIComponent(artist)}`;
     }
 
-    
     else if (type === "album") {
         const album = identifier[0];
         const artist = identifier[1];
