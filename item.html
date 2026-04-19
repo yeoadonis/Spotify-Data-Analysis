@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracklytics - Item</title>
+    <link rel="stylesheet" href="tracklytics.css">
+</head>
+<body>
+
+    <h1 id="pageTitle">Item Details</h1>
+
+    <div id="itemSection">
+        <h2 id="itemName">Loading...</h2>
+        <div id="mainStats"></div>
+    </div>
+
+    <div id="extraSection"></div>
+
+<script>
+function getParams() {
+    const params = new URLSearchParams(window.location.search);
+
+    return {
+        type: params.get("type"),
+        name: params.get("name"),
+        artist: params.get("artist")
+    };
+}
+
+async function loadItem() {
+    const { type, name, artist } = getParams();
+
+    let url = "";
+
+    if (type === "artist") {
+        url = `http://127.0.0.1:8000/get-item?type=${encodeURIComponent(type)}&name=${encodeURIComponent(name)}`;
+    } else {
+        url = `http://127.0.0.1:8000/get-item?type=${encodeURIComponent(type)}&name=${encodeURIComponent(name)}&artist=${encodeURIComponent(artist)}`;
+    }
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    displayItem(data, type);
+}
+
+function displayItem(data, type) {
+    document.getElementById("itemName").textContent =
+        data.track || data.album || data.artist || "Unknown item";
+
+    const mainStats = document.getElementById("mainStats");
+    mainStats.innerHTML = "";
+
+    addStat(mainStats, "First listen", formatDate(data.first_listening));
+    addStat(mainStats, "Last listen", formatDate(data.last_listening));
+    addStat(mainStats, "Total streams", data.count);
+    addStat(mainStats, "Total minutes", data.min_played);
+    addStat(mainStats, "All-time rank", data.rank_alltime);
+    addStat(mainStats, "Last 4 weeks rank", data.rank_4weeks);
+    addStat(mainStats, "Last 3 months rank", data.rank_3months);
+    addStat(mainStats, "Last 6 months rank", data.rank_6months);
+    addStat(mainStats, "Last 1 year rank", data.rank_1year);
+
+    if (type === "song") {
+        addStat(mainStats, "Artist", data.artist);
+        addStat(mainStats, "Album", data.album);
+    }
+
+    if (type === "album") {
+        addStat(mainStats, "Artist", data.artist);
+    }
+
+    const extraSection = document.getElementById("extraSection");
+    extraSection.innerHTML = "";
+
+    if (type === "album" && data.tracklist) {
+        addListSection(extraSection, "Tracklist", data.tracklist, "streams");
+    }
+
+    if (type === "artist") {
+        if (data.top_tracks) {
+            addListSection(extraSection, "Top Tracks", data.top_tracks, "streams");
+        }
+
+        if (data.top_albums) {
+            addListSection(extraSection, "Top Albums", data.top_albums, "streams");
+        }
+    }
+}
+
+function addStat(container, label, value) {
+    const div = document.createElement("div");
+    div.className = "rankingRow";
+    div.textContent = `${label} : ${value}`;
+    container.appendChild(div);
+}
+
+function addListSection(container, title, items, label) {
+    const section = document.createElement("div");
+    section.className = "rankingBlock";
+
+    const h3 = document.createElement("h3");
+    h3.textContent = title;
+    section.appendChild(h3);
+
+    items.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "rankingRow";
+        row.textContent = `${index + 1}. ${item[0]} : ${item[1]} ${label}`;
+        section.appendChild(row);
+    });
+
+    container.appendChild(section);
+}
+
+function formatDate(value) {
+    if (!value) return "Unknown";
+
+    const date = new Date(value);
+    if (isNaN(date)) {
+        return value;
+    }
+
+    return date.toLocaleDateString();
+}
+
+loadItem();
+</script>
+
+</body>
+</html>
