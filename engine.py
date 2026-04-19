@@ -1,10 +1,6 @@
 from datetime import datetime, timedelta
 
 
-# ========================
-# SIMPLIFICATION DES DONNÉES
-# ========================
-
 def simplifier_list(orig_list):
     simp_list = []
 
@@ -26,9 +22,7 @@ def simplifier_list(orig_list):
     return simp_list
 
 
-# ========================
-# FILTRAGE PAR PÉRIODE
-# ========================
+
 
 def filter_by_period(data, period):
     last_date = max(ligne["ts"] for ligne in data)
@@ -54,9 +48,6 @@ def filter_by_period(data, period):
     return [l for l in data if l["ts"] >= limit]
 
 
-# ========================
-# RANK (OPTIMISÉ)
-# ========================
 
 def rank(data, key_type="song", mode="count"):
     counts = {}
@@ -80,36 +71,30 @@ def rank(data, key_type="song", mode="count"):
     return sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
 
-# ========================
-# BUILD RANK MAP (O(1))
-# ========================
 
 def build_rank_map(ranking):
     return {identifier: i + 1 for i, (identifier, _) in enumerate(ranking)}
 
 
-# ========================
-# ITEM STATS
-# ========================
 
 def item_stats(data, identifier, key_type="song"):
     stats = {}
 
-    # --- Pré-calcul des datasets ---
+    
     data_all = data
     data_4w = filter_by_period(data, "4weeks")
     data_3m = filter_by_period(data, "3months")
     data_6m = filter_by_period(data, "6months")
     data_1y = filter_by_period(data, "1year")
 
-    # --- Rankings + maps ---
+    
     rank_all = build_rank_map(rank(data_all, key_type))
     rank_4w = build_rank_map(rank(data_4w, key_type))
     rank_3m = build_rank_map(rank(data_3m, key_type))
     rank_6m = build_rank_map(rank(data_6m, key_type))
     rank_1y = build_rank_map(rank(data_1y, key_type))
 
-    # --- Stats principales ---
+    
     listenings = []
     track_counts = {}
     album_counts = {}
@@ -127,14 +112,14 @@ def item_stats(data, identifier, key_type="song"):
         if not match:
             continue
 
-        # Dates
+        
         listenings.append(ligne["ts"])
 
-        # Count + time
+    
         stats["count"] = stats.get("count", 0) + 1
         stats["min_played"] = stats.get("min_played", 0) + ligne["min_played"]
 
-        # Metadata
+        
         stats["artist"] = ligne["artist"]
 
         if key_type == "song":
