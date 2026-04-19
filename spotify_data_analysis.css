@@ -232,3 +232,13 @@ button:active {
 .closeButton:hover {
     background: #1ed760;
 }
+
+.rankingRow {
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.rankingRow:hover {
+    background: #333333;
+    transform: scale(1.02);
+}
