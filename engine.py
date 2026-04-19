@@ -80,99 +80,85 @@ def build_rank_map(ranking):
 def item_stats(data, identifier, key_type="song"):
     stats = {}
 
-    
     data_all = data
     data_4w = filter_by_period(data, "4weeks")
     data_3m = filter_by_period(data, "3months")
     data_6m = filter_by_period(data, "6months")
     data_1y = filter_by_period(data, "1year")
 
-    
     rank_all = build_rank_map(rank(data_all, key_type))
     rank_4w = build_rank_map(rank(data_4w, key_type))
     rank_3m = build_rank_map(rank(data_3m, key_type))
     rank_6m = build_rank_map(rank(data_6m, key_type))
     rank_1y = build_rank_map(rank(data_1y, key_type))
 
-    
+    if key_type == "song":
+        item_data = [l for l in data if (l["track"], l["artist"]) == identifier]
+    elif key_type == "album":
+        item_data = [l for l in data if (l["album"], l["artist"]) == identifier]
+    else:
+        item_data = [l for l in data if l["artist"] == identifier]
+
+    if not item_data:
+        return {}
+
     listenings = []
     track_counts = {}
     album_counts = {}
+    unique_tracks = set()
+    unique_albums = set()
 
-    for ligne in data:
-        match = False
+    for ligne in item_data:
+        ts = ligne["ts"]
+        track = ligne["track"]
+        album = ligne["album"]
 
-        if key_type == "song":
-            match = (ligne["track"], ligne["artist"]) == identifier
-        elif key_type == "album":
-            match = (ligne["album"], ligne["artist"]) == identifier
-        else:
-            match = ligne["artist"] == identifier
+        listenings.append(ts)
 
-        if not match:
-            continue
-
-        
-        listenings.append(ligne["ts"])
-
-    
         stats["count"] = stats.get("count", 0) + 1
         stats["min_played"] = stats.get("min_played", 0) + ligne["min_played"]
 
-        
+        track_counts[track] = track_counts.get(track, 0) + 1
+        unique_tracks.add(track)
+
+        album_counts[album] = album_counts.get(album, 0) + 1
+        unique_albums.add(album)
+
         stats["artist"] = ligne["artist"]
 
         if key_type == "song":
-            stats["track"] = ligne["track"]
-            stats["album"] = ligne["album"]
-
+            stats["track"] = track
+            stats["album"] = album
         elif key_type == "album":
-            stats["album"] = ligne["album"]
-
-            
-            track = ligne["track"]
-            if track not in track_counts:
-                track_counts[track] = 0
-            track_counts[track] += 1
-
-        elif key_type == "artist":
-
-            
-            track = ligne["track"]
-            if track not in track_counts:
-                track_counts[track] = 0
-            track_counts[track] += 1
-           
-            
-            album = ligne["album"]
-            if album not in album_counts:
-                album_counts[album] = 0
-            album_counts[album] += 1
-            stats["songs_top_of_alltime"]= sum(1 for item in rank_all if identifier == item[1] )
-            stats["songs_top_of_4weeks"]= sum(1 for item in rank_4w if identifier == item[1] )
-            stats["songs_top_of_3months"]= sum(1 for item in rank_3m if identifier == item[1] )
-            stats["songs_top_of_6months"]= sum(1 for item in rank_6m if identifier == item[1] )
-            stats["songs_top_of_1year"]= sum(1 for item in rank_1y if identifier == item[1] )
-    
-
+            stats["album"] = album
 
     stats["first_listening"] = min(listenings)
     stats["last_listening"] = max(listenings)
 
-    
     stats["rank_alltime"] = rank_all.get(identifier)
     stats["rank_4weeks"] = rank_4w.get(identifier)
     stats["rank_3months"] = rank_3m.get(identifier)
     stats["rank_6months"] = rank_6m.get(identifier)
     stats["rank_1year"] = rank_1y.get(identifier)
 
-    
-    if key_type == "album":
-        stats["tracklist"] = sorted(track_counts.items(), key=lambda x: x[1], reverse=True)
+    if key_type == "song":
+        return stats
 
-    if key_type == "artist":
+    elif key_type == "album":
+        stats["tracklist"] = sorted(track_counts.items(), key=lambda x: x[1], reverse=True)
+        return stats
+
+    elif key_type == "artist":
+        stats["number_of_songs"] = len(unique_tracks)
+        stats["number_of_albums"] = len(unique_albums)
+
         stats["top_tracks"] = sorted(track_counts.items(), key=lambda x: x[1], reverse=True)
         stats["top_albums"] = sorted(album_counts.items(), key=lambda x: x[1], reverse=True)
 
-    return stats
+        stats["songs_in_top_alltime"] = sum(
+            1 for (track, artist) in rank_all.keys()
+            if artist == identifier
+        )
+
+        return stats
  
