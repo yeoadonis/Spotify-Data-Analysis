@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tracklytics - Item</title>
+    <title> Item</title>
     <link rel="stylesheet" href="spotify_data_analysis.css">
 </head>
 <body>
@@ -56,11 +56,11 @@ function displayItem(data, type) {
     addStat(mainStats, "Last listen", formatDate(data.last_listening));
     addStat(mainStats, "Total streams", data.count);
     addStat(mainStats, "Total minutes", data.min_played);
-    addStat(mainStats, "All-time rank", data.rank_alltime);
     addStat(mainStats, "Last 4 weeks rank", data.rank_4weeks);
     addStat(mainStats, "Last 3 months rank", data.rank_3months);
     addStat(mainStats, "Last 6 months rank", data.rank_6months);
     addStat(mainStats, "Last 1 year rank", data.rank_1year);
+    addStat(mainStats, "All-time rank", data.rank_alltime);
 
     if (type === "song") {
         addStat(mainStats, "Artist", data.artist);
@@ -75,16 +75,16 @@ function displayItem(data, type) {
     extraSection.innerHTML = "";
 
     if (type === "album" && data.tracklist) {
-        addListSection(extraSection, "Tracklist", data.tracklist, "streams");
+        addListSection(extraSection, "Your Top Tracks from this album ", data.tracklist, "streams");
     }
 
     if (type === "artist") {
         if (data.top_tracks) {
-            addListSection(extraSection, "Top Tracks", data.top_tracks, "streams");
+            addListSection(extraSection, "Your Top Tracks from this artist", data.top_tracks, "streams");
         }
 
         if (data.top_albums) {
-            addListSection(extraSection, "Top Albums", data.top_albums, "streams");
+            addListSection(extraSection, "Your Top Albums from this artist", data.top_albums, "streams");
         }
     }
 }
