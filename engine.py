@@ -119,9 +119,9 @@ def item_stats(data, identifier, key_type="song"):
         stats["min_played"] = stats.get("min_played", 0) + ligne["min_played"]
 
         track_counts[track] = track_counts.get(track, 0) + 1
-        unique_tracks.add(track)
-
         album_counts[album] = album_counts.get(album, 0) + 1
+
+        unique_tracks.add(track)
         unique_albums.add(album)
 
         stats["artist"] = ligne["artist"]
@@ -148,16 +148,19 @@ def item_stats(data, identifier, key_type="song"):
         stats["tracklist"] = sorted(track_counts.items(), key=lambda x: x[1], reverse=True)
         return stats
 
-    elif key_type == "artist":
+    else:
         stats["number_of_songs"] = len(unique_tracks)
         stats["number_of_albums"] = len(unique_albums)
 
         stats["top_tracks"] = sorted(track_counts.items(), key=lambda x: x[1], reverse=True)
         stats["top_albums"] = sorted(album_counts.items(), key=lambda x: x[1], reverse=True)
 
-        stats["songs_in_top_alltime"] = sum(
-            1 for (track, artist) in rank_all.keys()
-            if artist == identifier
+        rank_all_songs = rank(data_all, key_type="song")
+        top_100 = rank_all_songs[:100]
+
+        stats["songs_in_top_100"] = sum(
+            1 for item in top_100
+            if item[0][1] == identifier
         )
 
         return stats
