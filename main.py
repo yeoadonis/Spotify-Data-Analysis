@@ -65,4 +65,16 @@ def top_artists(mode: str = "count", period: str = "all"):
 def top_albums(mode: str = "count", period: str = "all"):
     filtered = filter_by_period(DATA, period)
     return rank(filtered, key_type="album", mode=mode)[:100]
-  
+
+#Endpoint pour les stats d'un item
+@app.get("/get-item")
+def stats(type, name, period, artist : str = None):
+    
+    if type == "song":
+        identifier = (name, artist)
+    elif type == "album":
+        identifier = (name, artist)
+    else:
+        identifier = name
+
+    return item_stats(DATA, identifier, period, key_type=type)
