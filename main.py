@@ -68,7 +68,7 @@ def top_albums(mode: str = "count", period: str = "all"):
 
 #Endpoint pour les stats d'un item
 @app.get("/get-item")
-def stats(type, name, period, artist : str = None):
+def stats(type, name, artist : str = None):
     
     if type == "song":
         identifier = (name, artist)
