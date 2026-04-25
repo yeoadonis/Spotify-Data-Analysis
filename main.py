@@ -19,8 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
   
-
-# Endpoint pour l'upload du fichier
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
     content = await file.read()
@@ -46,35 +44,26 @@ async def upload(file: UploadFile = File(...)):
 
     DATA = simplifier_list(orig_list)
 
+    global CONTEXT
+    CONTEXT = ListeningContext(DATA) 
     return {"message": "data loaded"}
-
-# Endpoint pour les chansons
 @app.get("/top-songs")
-def top_songs(mode: str = "count", period: str = "all"):
-    filtered = filter_by_period(DATA, period)
-    return rank(filtered, key_type="song", mode=mode)[:100]
-
-# Endpoint pour les artistes
-@app.get("/top-artists")
-def top_artists(mode: str = "count", period: str = "all"):
-    filtered = filter_by_period(DATA, period)
-    return rank(filtered, key_type="artist", mode=mode)[:100]
-
-# Endpoint pour les albums
-@app.get("/top-albums")
-def top_albums(mode: str = "count", period: str = "all"):
-    filtered = filter_by_period(DATA, period)
-    return rank(filtered, key_type="album", mode=mode)[:100]
-
-#Endpoint pour les stats d'un item
-@app.get("/get-item")
-def stats(type, name, artist : str = None):
+def top_songs(period: str = "all", mode: str = "count"):
     
-    if type == "song":
-        identifier = (name, artist)
-    elif type == "album":
-        identifier = (name, artist)
-    else:
-        identifier = name
+    ranks = CONTEXT.rank_maps[mode].get(period, CONTEXT.rank_maps[mode]["all"])["song"]
+    return [[x[0], x[1][1]] for x in sorted(ranks.items(), key=lambda x: x[1][0])][:250]
+@app.get("/top-artists")
+def top_artists(period: str = "all", mode: str = "count"):
+    ranks = CONTEXT.rank_maps[mode].get(period, CONTEXT.rank_maps[mode]["all"])["artist"]
+    return [[x[0], x[1][1]] for x in sorted(ranks.items(), key=lambda x: x[1][0])][:250]
 
-    return item_stats(DATA, identifier, period, key_type=type)
+@app.get("/top-albums")
+def top_albums(period: str = "all", mode: str = "count"):
+    ranks = CONTEXT.rank_maps[mode].get(period, CONTEXT.rank_maps[mode]["all"])["album"]
+    return [[x[0], x[1][1]] for x in sorted(ranks.items(), key=lambda x: x[1][0])][:250]
+
+@app.get("/get-item")
+def get_item(type: str, name: str, artist: str = None, mode: str = "count"):
+    identifier = (name, artist) if type in ["song", "album"] else name
+    
+    return CONTEXT.get_item_stats(identifier, type, mode)
