@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File
 import json
 import zipfile
 import io
-from engine import simplifier_list, rank, filter_by_period
+from engine import*
 
 
 
