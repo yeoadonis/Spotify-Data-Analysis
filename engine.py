@@ -154,3 +154,25 @@ class ListeningContext:
             if rank <= 100 and artist == artist_name:
                 count += 1
         return count
+    
+    def _listening_per_year(self):
+        yearly_counts = defaultdict(int)
+        for s in self.data:
+            year = s["ts"].year
+            yearly_counts[year] += s["min_played"]
+        return dict(yearly_counts)
+    
+    def general_stats(self):
+        return {
+            "total_songs": len(self.songs),
+            "total_artists": len(self.artists),
+            "total_albums": len(self.albums),
+            "total_listening_time": sum(s["min_played"] for s in self.songs.values()),
+            "total_listening_count": sum(s["count"] for s in self.songs.values()),
+            "first_listening": min(s["first"] for s in self.songs.values()) if self.songs else None,
+            "date_of_first_listening": min(s["first"] for s in self.songs.values()) if self.songs else None,
+            "date_of_last_listening": max(s["last"] for s in self.songs.values()) if self.songs else None, 
+            "listening_per_day": sum(s["min_played"] for s in self.songs.values()) / (max(s["last"] for s in self.songs.values()) - min(s["first"] for s in self.songs.values())).days if self.songs else None,
+            "listening_per_year": sum(s["min_played"] for s in self.songs.values()) / ((max(s["last"] for s in self.songs.values()) - min(s["first"] for s in self.songs.values())).days / 365) if self.songs else None,
+            "listenings_for_each_year": self._listening_per_year()       
+        }
