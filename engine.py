@@ -37,8 +37,6 @@ def filter_by_period(data, period):
     return [l for l in data if l["ts"] >= limit]
 
 
-from collections import defaultdict
-from datetime import datetime
 
 class ListeningContext:
     def __init__(self, data):
