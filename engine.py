@@ -81,7 +81,7 @@ class ListeningContext:
 
     def _generate_all_rankings(self):
         from engine import filter_by_period 
-        periods = ["all", "4weeks", "3months", "6months", "1year", "this_year"]
+        periods = ["all", "4weeks", "3months", "6months", "1year", "this year", "last year"]
         
         for p in periods:
             p_data = filter_by_period(self.data, p)
