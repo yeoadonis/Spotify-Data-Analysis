@@ -27,18 +27,14 @@ def filter_by_period(data, period):
     elif period == "3months": limit = last_date - timedelta(days=90)
     elif period == "6months": limit = last_date - timedelta(days=182)
     elif period == "1year": limit = last_date - timedelta(days=365)
-    elif period == "this year": limit = datetime(last_date.year, 1, 1)
-    elif period == "last year":
+    elif period == "thisyear": limit = datetime(last_date.year, 1, 1)
+    elif period == "lastyear":
         start = datetime(last_date.year - 1, 1, 1)
         end = datetime(last_date.year - 1, 12, 31)
-        return [l for l in data if start <= l["ts"] <= end]
+        return [l for l in data if start <= l["ts"] and l["ts"] <= end]
     else: return data
 
     return [l for l in data if l["ts"] >= limit]
-
-
-from collections import defaultdict
-from datetime import datetime
 
 class ListeningContext:
     def __init__(self, data):
@@ -50,6 +46,7 @@ class ListeningContext:
         
         self._build_indices()
         self._generate_all_rankings()
+        self.general_stats()
 
     def _build_indices(self):
         for ligne in self.data:
@@ -82,8 +79,8 @@ class ListeningContext:
             self.albums[al_id]["last"] = max(self.albums[al_id]["last"], ts)
 
     def _generate_all_rankings(self):
-        from engine import filter_by_period 
-        periods = ["all", "4weeks", "3months", "6months", "1year", "this_year"]
+        
+        periods = ["all", "4weeks", "3months", "6months", "1year", "thisyear", "lastyear"]
         
         for p in periods:
             p_data = filter_by_period(self.data, p)
@@ -140,7 +137,8 @@ class ListeningContext:
 
         mapping = {
             "all": "rank_alltime", "4weeks": "rank_4weeks",
-            "3months": "rank_3months", "6months": "rank_6months", "1year": "rank_1year"
+            "3months": "rank_3months", "6months": "rank_6months", "1year": "rank_1year",
+            "thisyear": "rank_thisyear", "lastyear": "rank_lastyear"
         }
 
         for p_key, js_key in mapping.items():
@@ -156,3 +154,24 @@ class ListeningContext:
             if rank <= 100 and artist == artist_name:
                 count += 1
         return count
+    
+    def _listening_per_year(self):
+        yearly_counts = defaultdict(int)
+        for s in self.data:
+            year = s["ts"].year
+            yearly_counts[year] += s["min_played"]
+        return dict(yearly_counts)
+    
+    def general_stats(self):
+        return {
+            "total_songs": len(self.songs),
+            "total_artists": len(self.artists),
+            "total_albums": len(self.albums),
+            "total_listening_time": sum(s["min_played"] for s in self.songs.values()),
+            "total_listening_count": sum(s["count"] for s in self.songs.values()),
+            "first_listening": min(s["first"] for s in self.songs.values()) if self.songs else None,
+            "date_of_first_listening": min(s["first"] for s in self.songs.values()) if self.songs else None,
+            "date_of_last_listening": max(s["last"] for s in self.songs.values()) if self.songs else None, 
+            "listening_per_day": sum(s["min_played"] for s in self.songs.values()) / (max(s["last"] for s in self.songs.values()) - min(s["first"] for s in self.songs.values())).days if self.songs else None,
+            "listening_per_year": self._listening_per_year()
+        }

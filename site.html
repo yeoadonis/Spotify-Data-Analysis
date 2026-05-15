@@ -34,13 +34,18 @@
             <option value="3months">Last 3 months</option>
             <option value="6months">Last 6 months</option>
             <option value="1year">Last 1 year</option>
-            <option value="This year">This year</option>
-            <option value="last year">Last year</option>
+            <option value="thisyear">This year</option>
+            <option value="lastyear">Last year</option>
         </select>
 
         <br><br>
 
         <button onclick="loadDashboard()">Show rankings</button>
+    </div>
+   
+    <div id="generalstats" style="display:none;">
+        <h2>General Statistics</h2>
+        <div id="generalStatsContent"></div>
     </div>
 
     <div id="dashboardSection" style="display:none;">
@@ -50,7 +55,7 @@
             <h3>Top Songs</h3>
             <div id="songsPreview"></div>
             <button onclick="goToRanking('song')">See full ranking</button>
-
+       
         </div>
 
         <div class="rankingBlock">
@@ -126,23 +131,73 @@ function displayRanking(containerId, data, mode, limit) {
     } else if (mode === "time") {
         label = "minutes";
     }
+    let itemType = "";
+    if (containerId.includes("songs")) itemType = "song";
+    else if (containerId.includes("artists")) itemType = "artist";
+    else if (containerId.includes("albums")) itemType = "album";
 
     data.slice(0, limit).forEach((item, index) => {
-        let name = "";
         const value = item[1];
+        let name = "";
+        let artist = null;
 
         if (Array.isArray(item[0])) {
-            name = item[0].join(" - ");
+            name = item[0][0];
+            artist = item[0][1];
         } else {
             name = item[0];
         }
 
         const div = document.createElement("div");
         div.className = "rankingRow";
-        div.textContent = `${index + 1}. ${name} : ${value} ${label}`;
+        div.style.cursor = "pointer";
+        div.textContent = `${index + 1}. ${artist ? name + " - " + artist : name} : ${value} ${label}`;
+
+        div.onclick = () => {
+            const mode = document.getElementById("mode").value;
+            // On utilise itemType qu'on a défini plus haut
+            let url = `item.html?type=${itemType}&name=${encodeURIComponent(name)}&mode=${mode}`;
+            if (artist) url += `&artist=${encodeURIComponent(artist)}`;
+            window.location.href = url;
+        };
+
         container.appendChild(div);
     });
 }
+    data.slice(0, limit).forEach((item, index) => {
+    const value = item[1];
+    let name = "";
+    let artist = null;
+
+    if (Array.isArray(item[0])) {
+        name = item[0][0];
+        artist = item[0][1];
+    } else {
+        name = item[0];
+    }
+
+    const div = document.createElement("div");
+    div.className = "rankingRow";
+    div.style.cursor = "pointer"; // Indique que c'est cliquable
+    div.textContent = `${index + 1}. ${artist ? name + " - " + artist : name} : ${value} ${label}`;
+
+
+    div.onclick = () => {
+        const mode = document.getElementById("mode").value;
+        
+        let itemType = containerId.includes("Songs") ? "song" : 
+                       containerId.includes("Artists") ? "artist" : "album";
+        
+        let url = `item.html?type=${itemType}&name=${encodeURIComponent(name)}&mode=${mode}`;
+        if (artist) url += `&artist=${encodeURIComponent(artist)}`;
+        
+        window.location.href = url;
+    };
+
+    container.appendChild(div);
+
+
+    });
 
 function openRankingModal(type) {
     const mode = document.getElementById("mode").value;
@@ -186,6 +241,40 @@ function goToRanking(type) {
 
     window.location.href = `ranking.html?type=${type}&mode=${mode}&period=${encodeURIComponent(period)}`;
 }
+
+function generalStats() {
+    fetch("http://localhost:8000/general-stats")
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById("generalStatsContent");
+            container.innerHTML = `
+                <p>Total songs listened: ${data.total_songs}</p>
+                <p>Total artists listened: ${data.total_artists}</p>
+                <p>Total albums listened: ${data.total_albums}</p>
+                <p>Date of first listening: ${data.date_of_first_listening}</p>
+                <p>Date of last listening: ${data.date_of_last_listening}</p>
+                <p>Average listening per day: ${data.listening_per_day.toFixed(2)} minutes</p>
+                <p>Average listening per year: ${data.listening_per_year.toFixed(2)} minutes</p>
+            `;
+
+            // Afficher les écoutes par année
+            const yearlyStats = document.createElement("div");
+            yearlyStats.innerHTML = "<h3>Listenings for each year:</h3>";
+            const list = document.createElement("ul");
+            for (const [year, count] of Object.entries(data.listenings_for_each_year)) {
+                const listItem = document.createElement("li");
+                listItem.textContent = `${year}: ${count} minutes`;
+                list.appendChild(listItem);
+            }
+            yearlyStats.appendChild(list);
+            container.appendChild(yearlyStats);
+        })
+        .catch(error => {
+            console.error("Error fetching general stats:", error);
+        });
+
+    }
+    
 </script>
 
 </body>

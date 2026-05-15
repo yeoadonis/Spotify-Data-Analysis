@@ -67,3 +67,7 @@ def get_item(type: str, name: str, artist: str = None, mode: str = "count"):
     identifier = (name, artist) if type in ["song", "album"] else name
     
     return CONTEXT.get_item_stats(identifier, type, mode)
+
+@app.get("/general-stats")
+def general_stats():
+    return CONTEXT.general_stats()
