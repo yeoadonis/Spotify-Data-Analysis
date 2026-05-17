@@ -71,3 +71,13 @@ def get_item(type: str, name: str, artist: str = None, mode: str = "count"):
 @app.get("/general-stats")
 def general_stats():
     return CONTEXT.general_stats()
+
+ @app.get("/listening-profiles")
+def listening_profiles():
+    return CONTEXT.listening_profiles()
+
+@app.get("/listening-per-year")
+def listening_per_year():
+    return CONTEXT.listening_per_year()
+
+        
