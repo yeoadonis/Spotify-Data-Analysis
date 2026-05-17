@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Spotify Analytics - Dashboard</title>
+    <link rel="stylesheet" href="spotify_data_analysis.css">
+    <style>
+        /* Grille adaptative pour les statistiques globales */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-card {
+            background: #282828;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.3rem;
+            color: #1DB954;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* Alignement des 3 colonnes de classements sur une seule ligne */
+        .rankings-row {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+            margin-top: 20px;
+            flex-wrap: wrap; /* Permet de passer à la ligne proprement sur petit écran */
+        }
+        .ranking-column {
+            background: #181818;
+            flex: 1;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            min-width: 280px;
+        }
+
+        /* Style des lignes de morceaux incluant l'image de la pochette */
+        .row-item {
+            display: flex;
+            align-items: center;
+            background: #282828;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .row-item:hover {
+            background: #333;
+        }
+        .artwork {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            margin-right: 12px;
+            object-fit: cover;
+            background: #404040;
+        }
+        .text-info {
+            flex: 1;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sub-value {
+            font-size: 0.8rem;
+            color: #b3b3b3;
+        }
+
+        /* Boutons de switch de graphiques */
+        .chart-btn-group button {
+            padding: 8px 16px;
+            background: #282828;
+            color: white;
+            border: 1px solid #333;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: 0.2s;
+        }
+        .chart-btn-group button:hover, .chart-btn-group button.active {
+            background: #383838;
+            border-color: #1DB954;
+            color: #1DB954;
+        }
+
+        /* Bouton stylisé pour voir le classement complet */
+        .full-ranking-btn {
+            display: block;
+            width: 100%;
+            background: #282828;
+            color: #b3b3b3;
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .full-ranking-btn:hover {
+            background: #1DB954;
+            color: white;
+            border-color: #1DB954;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Your Music Dashboard</h1>
+
+    <div class="rankingBlock" style="max-width: 1000px;">
+        <h2> Global Profile Overview</h2>
+        <div class="stats-grid" id="generalStatsGrid">
+            </div>
+    </div>
+
+    <div class="rankingBlock" style="max-width: 1000px;">
+        <h2> Listening Times</h2>
+        <div class="chart-btn-group" style="text-align: center; margin-bottom: 20px;">
+            <button id="btn-hourly" onclick="switchChart('hourly')" class="active">By Hour</button>
+            <button id="btn-weekly" onclick="switchChart('weekly')">By Day</button>
+            <button id="btn-monthly" onclick="switchChart('monthly')">By Month</button>
+        </div>
+        <div style="position: relative; height: 320px; width: 100%;">
+            <canvas id="profileChart"></canvas>
+        </div>
+    </div>
+
+    
+
+    <div class="rankingBlock" style="max-width: 1000px; display: flex; justify-content: space-around; align-items: center; padding: 15px;">
+        <div>
+            <label for="mode">Metric: </label>
+            <select id="mode" onchange="refreshRankings(); updateChartMetric();">
+                <option value="count">Count (Streams)</option>
+                <option value="time">Time (Minutes)</option>
+            </select>
+        </div>
+        <div>
+            <label for="period">Timeframe: </label>
+            <select id="period" onchange="refreshRankings()">
+                <option value="all">All Time</option>
+                <option value="4weeks">Last 4 Weeks</option>
+                <option value="3months">Last 3 Months</option>
+                <option value="6months">Last 6 Months</option>
+                <option value="1year">Last 1 Year</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="rankings-row" style="max-width: 1000px; margin: 0 auto 50px auto;">
+        
+        <div class="ranking-column">
+            <h3 style="color: #1DB954; margin-bottom: 15px;">🎵 Top Songs</h3>
+            <div id="topSongsContainer"></div>
+            <button class="full-ranking-btn" onclick="goToFullRanking('song')">See Full Ranking ➔</button>
+        </div>
+
+        <div class="ranking-column">
+            <h3 style="color: #1DB954; margin-bottom: 15px;"> 🎤 Top Artists</h3>
+            <div id="topArtistsContainer"></div>
+            <button class="full-ranking-btn" onclick="goToFullRanking('artist')">See Full Ranking ➔</button>
+        </div>
+
+        <div class="ranking-column">
+            <h3 style="color: #1DB954; margin-bottom: 15px;">💿 Top Albums</h3>
+            <div id="topAlbumsContainer"></div>
+            <button class="full-ranking-btn" onclick="goToFullRanking('album')">See Full Ranking ➔</button>
+        </div>
+
+    </div>
+
+<script>
+    let chartDataStore = null;
+    let myChartInstance = null;
+    let currentActiveTab = 'hourly';
+
+    // Se lance dès que la page est chargée
+    window.onload = function() {
+        console.log("Dashboard initialized");
+        loadDashboardData();
+    };
+
+    async function loadDashboardData() {
+        // 1. Charger les classements en premier (All time + Count) pour que l'interface s'affiche
+        refreshRankings();
+
+        // 2. Charger les statistiques globales
+        try {
+            const resStats = await fetch("http://127.0.0.1:8000/general-stats");
+            if (!resStats.ok) throw new Error("Backend stats error");
+            const dataStats = await resStats.json();
+            renderGeneralStats(dataStats);
+        } catch(e) { 
+            console.error("Error loading general-stats:", e); 
+        }
+
+        // 3. Charger les profils temporels pour le graphique
+        try {
+            const resProfiles = await fetch("http://127.0.0.1:8000/listening-profiles");
+            if (!resProfiles.ok) throw new Error("Backend profiles error");
+            chartDataStore = await resProfiles.json();
+            console.log("Profiles data successfully loaded:", chartDataStore);
+            
+            // On force l'affichage initial
+            switchChart('hourly'); 
+        } catch(e) { 
+            console.error("Error loading listening-profiles:", e);
+            // Affichage d'un message d'erreur visuel si le backend ne répond pas sur cette route
+            const canvas = document.getElementById('profileChart');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = "#ff5555";
+                ctx.font = "16px Arial";
+                ctx.fillText("Unable to load profile chart. Check backend connection.", 10, 50);
+            }
+                  
+            
+        }
+    }
+
+    function renderGeneralStats(stats) {
+        const grid = document.getElementById("generalStatsGrid");
+        if (!grid) return;
+        const items = [
+            { label: "Total Tracks", val: stats.total_songs || 0 },
+            { label: "Total Artists", val: stats.total_artists || 0 },
+            { label: "Total Albums", val: stats.total_albums || 0 },
+            { label: "Total Streams", val: stats.total_listening_count || 0 },
+            { label: "Total Time", val: `${Math.round(stats.total_listening_time || 0)} min` },
+            { label: "Daily Avg", val: `${Math.round(stats.listening_per_day || 0)} min` }
+        ];
+        grid.innerHTML = items.map(i => `
+            <div class="stat-card">
+                <div style="color: #b3b3b3; font-size: 0.85rem;">${i.label}</div>
+                <div class="stat-value">${i.val}</div>
+            </div>
+        `).join('');
+    }
+
+    async function fetchArtwork(term, type, imgElement) {
+        let entity = type === 'song' ? 'musicTrack' : type === 'album' ? 'album' : 'musicArtist';
+        let url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=${entity}&limit=1`;
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            if(data.results && data.results.length > 0) {
+                let imgUrl = data.results[0].artworkUrl100 || data.results[0].artworkUrl60;
+                if(imgUrl) imgElement.src = imgUrl;
+            }
+        } catch(e) { /* Conserve l'image par défaut en cas d'erreur réseau */ }
+    }
+
+    function refreshRankings() {
+        const mode = document.getElementById("mode").value;
+        const period = document.getElementById("period").value;
+        const label = mode === "count" ? "streams" : "min";
+
+        fetchRankAndRender("top-songs", "topSongsContainer", "song", mode, period, label);
+        fetchRankAndRender("top-artists", "topArtistsContainer", "artist", mode, period, label);
+        fetchRankAndRender("top-albums", "topAlbumsContainer", "album", mode, period, label);
+    }
+
+    async function fetchRankAndRender(endpoint, containerId, type, mode, period, label) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = "<p style='color:#555; padding: 10px;'>Loading items...</p>";
+        
+        try {
+            const res = await fetch(`http://127.0.0.1:8000/${endpoint}?mode=${mode}&period=${period}`);
+            if (!res.ok) throw new Error("Rank API failed");
+            const data = await res.json();
+            container.innerHTML = "";
+
+            if (!data || data.length === 0) {
+                container.innerHTML = "<p style='color:#888; padding:10px;'>No data found</p>";
+                return;
+            }
+
+            data.slice(0, 10).forEach((item, idx) => {
+                let name = "";
+                let artist = "";
+                let searchStr = "";
+
+                if (Array.isArray(item[0])) {
+                    name = item[0][0];
+                    artist = item[0][1];
+                    searchStr = name + " " + artist;
+                } else {
+                    name = item[0];
+                    searchStr = name;
+                }
+                const scoreValue = item[1];
+
+                const row = document.createElement("div");
+                row.className = "row-item";
+                
+                const img = document.createElement("img");
+                img.className = "artwork";
+                img.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 2v14c-.65-.4-1.48-.6-2.43-.5-1.47.15-2.57 1.34-2.57 2.83C7 20.01 8.34 21 10 21c1.93 0 3-.96 3-2.5V7h5V3h-6z'/></svg>";
+                row.appendChild(img);
+
+                fetchArtwork(searchStr, type, img);
+
+                const info = document.createElement("div");
+                info.className = "text-info";
+                
+                if (type === "song") {
+                    info.innerHTML = `<strong>${idx+1}. ${name}</strong><br><span class="sub-value">${artist} • ${scoreValue} ${label}</span>`;
+                } else {
+                    info.innerHTML = `<strong>${idx+1}. ${name}</strong><br><span class="sub-value">${scoreValue} ${label}</span>`;
+                }
+                row.appendChild(info);
+
+                row.onclick = () => {
+                    let url = `item.html?type=${type}&name=${encodeURIComponent(name)}&mode=${mode}`;
+                    if(artist) url += `&artist=${encodeURIComponent(artist)}`;
+                    window.location.href = url;
+                };
+
+                container.appendChild(row);
+            });
+        } catch(e) {
+            console.error(`Error rendering ${endpoint}:`, e);
+            container.innerHTML = "<p style='color:#ff5555; padding: 10px;'>Failed to load metrics.</p>";
+        }
+    }
+
+    function goToFullRanking(type) {
+        const mode = document.getElementById("mode").value;
+        const period = document.getElementById("period").value;
+        window.location.href = `ranking.html?type=${type}&mode=${mode}&period=${period}`;
+    }
+
+    function updateChartMetric() {
+        if(chartDataStore) {
+            switchChart(currentActiveTab);
+        }
+    }
+
+   function switchChart(type) {
+        console.log("Requesting tab switch to:", type);
+        currentActiveTab = type;
+
+        // Étape 1: Gestion des classes CSS sur les boutons
+        document.querySelectorAll('.chart-btn-group button').forEach(b => b.classList.remove('active'));
+        const activeBtn = document.getElementById(`btn-${type}`);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        // Étape 2: Sécurité si les données du Store ne sont pas là
+        if (!chartDataStore || !chartDataStore[type]) {
+            console.warn("No chart data stored for type:", type);
+            return;
+        }
+
+        const rawData = chartDataStore[type];
+        let labels = [];
+        let values = [];
+
+        // Étape 3: Extraction sérialisée sans plantage possible
+        if (type === 'hourly') {
+            for (let h = 0; h < 24; h++) {
+                labels.push(`${h}h`);
+                values.push(rawData[h] !== undefined ? rawData[h] : (rawData[String(h)] || 0));
+            }
+        } 
+        else if (type === 'monthly') {
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            for (let m = 1; m <= 12; m++) {
+                labels.push(monthNames[m - 1]);
+                values.push(rawData[m] !== undefined ? rawData[m] : (rawData[String(m)] || 0));
+            }
+        } 
+        else if (type === 'weekly') {
+            labels = Object.keys(rawData);
+            values = Object.values(rawData);
+        }
+
+        // Étape 4: Destruction propre pour éviter le bug des boutons bloqués
+        const canvas = document.getElementById('profileChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        
+        if (myChartInstance) { 
+            myChartInstance.destroy(); 
+        }
+
+        // Étape 5: Rendu final
+        myChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Minutes",
+                    data: values,
+                    backgroundColor: '#1DB954',
+                    hoverBackgroundColor: '#1ed760',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#b3b3b3' }, grid: { display: false } },
+                    y: { ticks: { color: '#b3b3b3' }, grid: { color: '#242424' } }
+                }
+            }
+        });
+    }
+</script>

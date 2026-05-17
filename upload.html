@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracklytics - Upload your History</title>
+    <link rel="stylesheet" href="spotify_data_analysis.css">
+    <style>
+        .upload-container {
+            max-width: 600px;
+            margin: 80px auto;
+            text-align: center;
+        }
+        .help-text {
+            margin-top: 30px;
+            color: #b3b3b3;
+            font-size: 0.95rem;
+        }
+        .help-text a {
+            color: #1DB954;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .help-text a:hover {
+            text-decoration: underline;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .custom-file-upload {
+            display: inline-block;
+            padding: 12px 24px;
+            cursor: pointer;
+            background: #282828;
+            border: 2px dashed #1DB954;
+            border-radius: 30px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        .custom-file-upload:hover {
+            background: #333;
+            scale: 1.02;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Tracklytics</h1>
+
+    <div class="upload-container" id="uploadSection">
+        <h2>Upload your Spotify Streaming History</h2>
+        <p style="color: #b3b3b3; margin-bottom: 25px;">Select your Extended Streaming History accounts (.json or zipped .zip archive)</p>
+        
+        <label class="custom-file-upload">
+            <input type="file" id="fileInput" accept=".json,.zip" onchange="updateFileName()">
+            📁 <span id="fileNameLabel">Choose your file</span>
+        </label>
+        
+        <br>
+        <button onclick="uploadFile()" style="width: 200px;">Upload & Analyze</button>
+
+        <div class="help-text">
+            Don't have your Spotify data file yet? <br>
+            <a href="tutorial.html">Follow our step-by-step tutorial here ➔</a>
+        </div>
+    </div>
+
+<script>
+    function updateFileName() {
+        const input = document.getElementById('fileInput');
+        const label = document.getElementById('fileNameLabel');
+        if(input.files.length > 0) {
+            label.textContent = input.files[0].name;
+        }
+    }
+
+    async function uploadFile() {
+        const fileInput = document.getElementById("fileInput");
+        if (fileInput.files.length === 0) {
+            alert("Please select a file first.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/upload", {
+                method: "POST",
+                body: formData
+            });
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Redirection immédiate vers le Dashboard une fois chargé !
+                window.location.href = "dashboard.html";
+            } else {
+                alert("Upload failed: " + data.message);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error connecting to backend server.");
+        }
+    }
+</script>
+</body>
+</html>
