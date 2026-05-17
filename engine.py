@@ -123,7 +123,9 @@ class ListeningContext:
                 "number_of_songs": len(base["tracks"]), "number_of_albums": len(base["albums"]),
                 "top_tracks": sorted(base["tracks"].items(), key=lambda x: x[1], reverse=True),
                 "top_albums": sorted(base["albums"].items(), key=lambda x: x[1], reverse=True),
-                "songs_in_top_100": self._count_top_100_songs(identifier, mode)
+                "songs_in_top_100 All Time": self._count_top_100_songs_alltime(identifier, mode),
+                "songs_in_top_100 Last Year": self._count_top_100_songs_1year(identifier, mode),
+                "songs_in_top_100 Last 4 Weeks": self._count_top_100_songs_4weeks(identifier, mode)
             }
         elif key_type == "album":
             base = self.albums.get(identifier)
@@ -144,10 +146,11 @@ class ListeningContext:
         for p_key, js_key in mapping.items():
             rank_info = self.rank_maps[mode].get(p_key, {}).get(key_type, {}).get(identifier)
             res[js_key] = rank_info[0] if rank_info else "N/A"
-            
+                
+
         return res
 
-    def _count_top_100_songs(self, artist_name, mode):
+    def _count_top_100_songs_alltime(self, artist_name, mode):
         top_100_map = self.rank_maps[mode]["all"]["song"]
         count = 0
         for (track, artist), (rank, val) in top_100_map.items():
@@ -155,12 +158,59 @@ class ListeningContext:
                 count += 1
         return count
     
-    def _listening_per_year(self):
+    def _count_top_100_songs_1year(self, artist_name, mode):
+        top_100_map = self.rank_maps[mode]["1year"]["song"]
+        count = 0
+        for (track, artist), (rank, val) in top_100_map.items():
+            if rank <= 100 and artist == artist_name:
+                count += 1
+        return count
+
+    def _count_top_100_songs_4weeks(self, artist_name, mode):
+        top_100_map = self.rank_maps[mode]["4weeks"]["song"]
+        count = 0
+        for (track, artist), (rank, val) in top_100_map.items():
+            if rank <= 100 and artist == artist_name:
+                count += 1
+        return count
+
+    def listening_per_year(self):
         yearly_counts = defaultdict(int)
         for s in self.data:
             year = s["ts"].year
             yearly_counts[year] += s["min_played"]
         return dict(yearly_counts)
+
+    def get_weekly_profile(self):
+        
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        weekly_counts = {d: 0 for d in days}
+        for ligne in self.data:
+            if "ts" in ligne and ligne["ts"]:
+                jour_index = ligne["ts"].weekday() 
+                weekly_counts[days[jour_index]] += 1
+        return weekly_counts
+
+    def get_hourly_profile(self):
+        
+        hourly_counts = {str(h): 0 for h in range(24)}
+        for ligne in self.data:
+            if "ts" in ligne and ligne["ts"]:
+                heure = str(ligne["ts"].hour)
+                hourly_counts[heure] += 1
+        return hourly_counts
+
+    def get_monthly_profile(self):
+        
+        monthly_counts = {str(m): 0 for m in range(1, 13)}
+        for ligne in self.data:
+            if "ts" in ligne and ligne["ts"]:
+                mois = str(ligne["ts"].month)
+                monthly_counts[mois] += 1
+        return monthly_counts
+
+
+        
     
     def general_stats(self):
         return {
@@ -173,5 +223,12 @@ class ListeningContext:
             "date_of_first_listening": min(s["first"] for s in self.songs.values()) if self.songs else None,
             "date_of_last_listening": max(s["last"] for s in self.songs.values()) if self.songs else None, 
             "listening_per_day": sum(s["min_played"] for s in self.songs.values()) / (max(s["last"] for s in self.songs.values()) - min(s["first"] for s in self.songs.values())).days if self.songs else None,
-            "listening_per_year": self._listening_per_year()
+        
+        }
+
+    def listening_profiles(self):
+        return {
+            "weekly": self.get_weekly_profile(),
+            "hourly": self.get_hourly_profile(),
+            "monthly": self.get_monthly_profile(),
         }
